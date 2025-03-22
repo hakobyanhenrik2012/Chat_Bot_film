@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chatbox</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff8c00, #e52e71); /* Gradient background */
+            color: #333;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            background: white;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 70vh;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        /* Input Area and Button */
+        .input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background: white;
+            box-shadow: 0px -2px 6px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            position: relative;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            font-size: 14px;
+            height: 35px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #007bff;
+        }
+
+        button {
+            margin-left: 5px;
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Chat Message Styles */
+        .message {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 10px;
+            font-size: 16px;
+            max-width: 75%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            border-radius: 10px 10px 0 10px;
+        }
+
+        .bot-message {
+            background-color: #28a745;
+            color: white;
+            align-self: flex-start;
+            border-radius: 10px 10px 10px 0;
+        }
+
+        /* Responsive Styling */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px; /* Add padding to avoid content touching edges */
+            }
+
+            .input-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            input {
+                margin-bottom: 10px;
+            }
+
+            button {
+                margin-left: 0;
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+            }
+
+            .message {
+                font-size: 14px; /* Smaller text for better readability on small screens */
+                max-width: 85%;
+            }
+        }
+
+        /* For tablets or medium screens */
+        @media (min-width: 600px) and (max-width: 1024px) {
+            .message {
+                font-size: 16px; /* Adjusting font size for tablets */
+                max-width: 80%;
+            }
+
+            button {
+                padding: 12px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chat"></div>
+    <div class="input-container">
+        <input type="text" id="message" placeholder="Type a movie code...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    
+    <script>
+        const movies = {
+            "56": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/10592371/35df2d41-69ee-42d2-a029-41fa52b03cc7/300x450",
+                link: "https://www.kinopoisk.run/film/1008444/"
+            },
+            "591": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/9784475/6f8c20ab-d744-4ac3-9d5a-ac15942eb4eb/440x660",
+                link: "https://www.kinopoisk.run/film/5078842/"
+            },
+            "85": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/1777765/13590f7e-10d8-47eb-9321-c34ce79cd0e6/300x450",
+                link: "https://www.kinopoisk.run/film/843859/"
+            },
+            "87": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/313d3c35-89b1-4a64-9d34-51737279ad74/300x450",
+                link: "https://www.kinopoisk.run/film/1287544/"
+            },
+            "76": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/4774061/ee0f6f64-303a-4ffd-89a5-12520360ea5d/300x450",
+                link: "https://www.kinopoisk.run/film/1254077/"
+            },
+            "012": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/6201401/dd33714f-9099-4b20-8d9c-b996e4042d81/300x450",
+                link: "https://www.kinopoisk.run/film/1009017/"
+            },
+            "895": {
+                image: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/19a63a06-a953-4cd8-9605-7b15dd5d7d46/300x450",
+                link: "https://www.kinopoisk.run/film/1328346/"
+            }
+        };
+
+        window.onload = function() {
+            let chat = document.getElementById("chat");
+            let welcomeMessage = document.createElement("div");
+            welcomeMessage.textContent = "Hello, I am a chat bot! Type a movie code.";
+            welcomeMessage.classList.add("message", "bot-message");
+            chat.appendChild(welcomeMessage);
+        };
+
+        // Function to send message
+        function sendMessage() {
+            let input = document.getElementById("message");
+            let text = input.value.trim();
+            let chat = document.getElementById("chat");
+
+            if (text !== "") {
+                let messageElement = document.createElement("div");
+                messageElement.textContent = text;
+                messageElement.classList.add("message", "user-message");
+                chat.appendChild(messageElement);
+
+                if (movies[text]) {
+                    displayMovie(chat, movies[text].image, movies[text].link);
+                }
+
+                input.value = "";
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+
+        // Function to display movie information
+        function displayMovie(chat, imageUrl, linkUrl) {
+            let botMessage = document.createElement("div");
+            botMessage.classList.add("message", "bot-message");
+            botMessage.innerHTML = `
+                <img src="${imageUrl}" alt="Movie Image" style="width: 200px; margin: 10px 0;">
+                <br>
+                <a href="${linkUrl}" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">Click here to view the movie</a>
+            `;
+            chat.appendChild(botMessage);
+        }
+
+        // Add event listener for Enter key to send message
+        document.getElementById("message").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
